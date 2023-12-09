@@ -24,3 +24,21 @@ class analyzer():
                 return content.name
 
         return None
+    
+    def has_load_balancing(self, repository):
+        # Check if the repository has a Docker Compose file
+        try:
+            compose_file = repository.get_contents("docker-compose.yml")
+        except:
+            return False
+
+        # Parse the Docker Compose file
+        compose_data = yaml.safe_load(compose_file.decoded_content)
+
+        # Check for load balancing configurations
+        for service_name, service_config in compose_data['services'].items():
+            if 'deploy' in service_config and 'replicas' in service_config['deploy']:
+                if service_config['deploy']['replicas'] > 1:
+                    return True
+
+        return False
