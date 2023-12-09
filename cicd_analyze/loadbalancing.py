@@ -1,9 +1,9 @@
+
 from github import Github
 from services.lib import analyzer
 
 
 def analyse_csv_repos():
-    ## output csv 
     output_csv_path = r"./output.csv"
 
     csv_path = r"./repos.csv"
@@ -27,15 +27,16 @@ def analyse_csv_repos():
 
         analyse = analyzer()
 
-        if analyse.has_Jenkinsfile(repository)!=None:
+        for line in csv_file:
+            # Your existing repo processing ...
 
-            with open(output_csv_path, 'a') as f:
-                
-                f.write(repo_name + "    :    " + analyse.has_Jenkinsfile(repository) + "\n")
-                f.close()
-            
-        else:
-            print("REPO WITHOUT CI/CD ...", flush=True)
+            if analyse.has_load_balancing(repository):
+                with open(output_csv_path, 'a') as f:
+                    f.write(repo_name + "    :    Load Balancing Configured\n")
+                    f.close()
+            else:
+                print("REPO WITHOUT LOAD BALANCING ...", flush=True)
+
 
         g.close()
 
