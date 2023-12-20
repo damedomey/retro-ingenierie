@@ -1,12 +1,13 @@
 from github import Github
 from lib import analyzer
-
-access_token = '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'
+access_token = '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'
 g = Github(access_token)
 
-with open("C:/Users/21264/Videos/retro-ingenierie/cicd_analyze/repos_logic.csv", "r") as csv_file:
+with open("C:/Users/21264/Videos/retro-ingenierie/extracted_data.csv", "r") as csv_file:
     for line in csv_file:
         repo_name = line.strip()
+
+        print("Analyzing repo: " + repo_name, flush=True)
 
 
         try:
@@ -24,6 +25,9 @@ with open("C:/Users/21264/Videos/retro-ingenierie/cicd_analyze/repos_logic.csv",
         check = analyse.check_if_there_is_custom_images(repository=repository)
         print("custom images")
         print(check)
+
+        if(check==None):
+            print("No docker-compose.yml file found", flush=True)
 ## get first element of tuple
         directories = check[0]
         #dockerfile_count = check[2]
