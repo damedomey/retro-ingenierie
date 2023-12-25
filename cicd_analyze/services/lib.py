@@ -17,12 +17,21 @@ class analyzer():
 
         get_directories_recursive(repository, path)
         return directories
+
+    def calculate_directory_sizes(self, repo, directories):
+        directory_sizes = {}
+        for directory in directories:
+            contents = repo.get_contents(directory)
+            size = sum(file.size for file in contents if file.type == "file")
+            directory_sizes[directory] = size
+
+        return directory_sizes
     
-    def check_if_there_is_custom_images(self, repository):
+    def check_if_there_is_custom_images(self, repository,images_from_dockercompose,directories):
         correspondences = []
         deployed_services = 0
-        directories = self.get_all_directories(repository=repository, path="")
-        repo_images = self.get_services_from_docker_compose(repository=repository)
+        directories = directories
+        repo_images = images_from_dockercompose
 
         if repo_images!=None and directories!=None:
             # Comparer les services du docker-compose avec les noms de dossiers
@@ -72,26 +81,16 @@ class analyzer():
         return search_for_docker_compose(contents)
 
 
+  
     
-    def get_images_from_docker_compose(self, repository):
+    def get_services_from_docker_compose(self, repository,dockercompose):
         # Obtenez le contenu du fichier 'docker-compose.yml'
-        file_content = self.has_docker_compose(repository)
         ##print("file_content : " + str(file_content), flush=True)
-        if file_content is None:
-            return None
-
-        # Obtenez la liste des images
-        return get_docker_images_from_compose(file_content)
-    
-    def get_services_from_docker_compose(self, repository):
-        # Obtenez le contenu du fichier 'docker-compose.yml'
-        file_content = self.has_docker_compose(repository)
-        ##print("file_content : " + str(file_content), flush=True)
-        if file_content is None:
+        if dockercompose is None:
             return None
 
         # Obtenez la liste des services
-        return get_docker_services_from_compose(file_content)
+        return get_docker_services_from_compose(dockercompose)
         
 
 
@@ -124,9 +123,32 @@ class analyzer():
                     return True
 
         return False
+    
+    def detect_mongo_replication(self,dockercompose):
 
-    def detect_master_slave_replication(self, repository):
-        file_content = self.has_docker_compose(repository)
+        dockercompose = yaml.safe_load(dockercompose)
+        if dockercompose is None:
+            return None
+
+        replication_keywords = [' --replSet rs0']
+        replication_detected = False
+
+        for service_name, service_config in dockercompose.get('services', {}).items():
+            if 'image' in service_config and service_config['image'] == 'mongo':
+                if 'command' in service_config:
+                    command = service_config['command']
+                    for keyword in replication_keywords:
+                        if keyword in command:
+                            replication_detected = True
+                            break
+
+        return replication_detected
+
+
+        
+
+    def detect_master_slave_replication(self, repository,dockercompose):
+        file_content = dockercompose
         if file_content is None:
             return None
 
@@ -151,7 +173,6 @@ class analyzer():
             return None
         
         ## parse file_content to a string
-        file_content = file_content.decode("utf-8")
         print(file_content)
         
         for directory in directories:
