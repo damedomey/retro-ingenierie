@@ -7,7 +7,6 @@ class analyzer():
 
     def get_all_directories(self, repository, path=""):
         directories = []
-
         def get_directories_recursive(repo, directory_path):
             nonlocal directories
             for content in repo.get_contents(directory_path):
@@ -42,17 +41,10 @@ class analyzer():
                         if service_name not in correspondences:
                             deployed_services += 1
                             correspondences.append(service_name)
-                        
-
             return (correspondences, deployed_services)
         
         else:
             print("No docker-compose.yml file found", flush=True)
-        # Comparer les services du docker-compose avec les noms de dossiers
-        
-
-        
-
         
   
 
@@ -74,58 +66,28 @@ class analyzer():
                     
             return None
 
-    # Obtient la liste des fichiers dans le dépôt
         contents = repository.get_contents("")
-
-        # Recherche récursive du fichier 'docker-compose.yml'
         return search_for_docker_compose(contents)
 
 
   
     
     def get_services_from_docker_compose(self, repository,dockercompose):
-        # Obtenez le contenu du fichier 'docker-compose.yml'
-        ##print("file_content : " + str(file_content), flush=True)
         if dockercompose is None:
             return None
-
-        # Obtenez la liste des services
         return get_docker_services_from_compose(dockercompose)
     
     
     
     def has_Jenkinsfile(self, repository):
-        # Obtenez la liste des fichiers dans le dépôt
         contents = repository.get_contents("")
-
         for content in contents:
-            #print("Folder name : " + content.name)
             if content.name.lower() == 'Jenkinsfile' or 'travis' in content.name.lower() or 'circle' in content.name.lower() or 'pipeline' in content.name.lower() or 'ci' in content.name.lower() or 'cd' in content.name.lower() :
                 return content.name
-
         return None
-    
-    def has_load_balancing(self, repository):
-        # Check if the repository has a Docker Compose file
-        try:
-            compose_file = repository.get_contents("docker-compose.yml")
-        except:
-            return False
 
-        # Parse the Docker Compose file
-        compose_data = yaml.safe_load(compose_file.decoded_content)
-
-        # Check for load balancing configurations
-        for service_name, service_config in compose_data['services'].items():
-            if 'deploy' in service_config and 'replicas' in service_config['deploy']:
-                if service_config['deploy']['replicas'] > 1:
-                    return True
-
-        return False
     
     def detect_mongo_replication(self,dockercompose):
-
-
         dockercompose = yaml.safe_load(dockercompose)
         if dockercompose is None:
             return None
@@ -235,26 +197,22 @@ def check_event_sourcing(images_from_dockercompose):
             possible_event_sourcing = True
     return possible_event_sourcing
 
-def detect_scalability_in_nginx_conf(nginx_content):
-    keywords = ["upstream", "least_conn", "round_robin", "ip_hash", "proxy_pass", "proxy_set_header", "health_check", "reload-config"]
+def detect_scalability(nginx_content):
+    keywords = ["upstream", "server", "listen", "proxy_pass", "proxy_set_header", "proxy_http_version", "location","balance","roundrobin","leastconn","ip_hash","health_check","reload-config","listen","loadBalancer"]
 
     for keyword in keywords:
         if keyword in nginx_content:
             return True
-
-    # Check for upstream blocks
-    if "upstream" in nginx_content and "server" in nginx_content:
-        return True
-
+        
     return False
         
     
-def search_for_nginx_conf(repository,contents, current_path=""):
+def search_for_loadBalancing_conf(repository,contents, current_path=""):
     for content in contents:
         if content.type == "dir":
             sub_contents = repository.get_contents(content.path)
             path = f"{current_path}/{content.name}" if current_path else content.name
-            nginx_conf = search_for_nginx_conf(repository,sub_contents, path)
+            nginx_conf = search_for_loadBalancing_conf(repository,sub_contents, path)
             if nginx_conf:
                 return nginx_conf
         elif content.name.lower() == 'nginx.conf' or 'nginx' in content.name.lower():
@@ -271,7 +229,7 @@ def search_for_nginx_conf(repository,contents, current_path=""):
 
     return None
 
-def detect_scalability_in_nginx_conf(nginx_content):
+def detect_scalability_with_keywords(nginx_content):
     keywords = ["upstream", "server", "listen", "proxy_pass", "proxy_set_header", "proxy_http_version", "location","balance","roundrobin","leastconn","ip_hash","health_check","reload-config","listen","loadBalancer"]
     for keyword in keywords:
         if keyword in nginx_content:
@@ -287,13 +245,13 @@ def detect_load_balancer(repository, images):
 
     # Search for nginx.conf
     contents = repository.get_contents("")
-    nginx = search_for_nginx_conf(repository=repository,contents=contents)
+    nginx = search_for_loadBalancing_conf(repository=repository,contents=contents)
 
     if nginx is None:
         return possible_load_balancing, "nginx.conf not found"
 
     # Check for specific keywords in nginx.conf
-    keywords_present = detect_scalability_in_nginx_conf(nginx)
+    keywords_present = detect_scalability(nginx)
     if keywords_present:
         return True, "scalability present"
     else:

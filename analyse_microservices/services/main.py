@@ -18,7 +18,7 @@ def analyze_repository(repository, results_df):
 
         print(dockercompose)
         mongo_replication = analyse.detect_mongo_replication(dockercompose=dockercompose)
-        mongo_replication_status = "Present" if mongo_replication is None or mongo_replication is False else "Present"
+        mongo_replication_status = "Present" if mongo_replication is True else mongo_replication is   "Not"
 
         detect_master_slave_replication = analyse.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
         master_slave_replication_status = "Present" if detect_master_slave_replication is not None else "Not"
@@ -75,21 +75,18 @@ def save_to_excel(results_df, output_file):
 
 def process_load_balancer_result(result):
     load_balancing_status, message = result
-
     if load_balancing_status:
         if message == "scalability present":
             return "LoadBalancing and Scalability"
-            # Perform actions if both load balancing and scalability are present
         else:
             return"LoadBalancing and no Scalability"
-            # Perform actions if load balancing is present but scalability is not
-
     else:
         return "Not present"
-        # Perform actions if load balancing is not present
+
+
 
 def main():
-    access_token = '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'
+    access_token = ''
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
@@ -107,13 +104,12 @@ def main():
             repository = g.get_repo(repo_name)
             print(repository)
             try:
-
                 results_df = analyze_repository(repository, results_df)
             except Exception as e:
                 continue
 
 
-    save_to_excel(results_df, output_file)
+            save_to_excel(results_df, output_file)
 
 if __name__ == "__main__":
     main()
