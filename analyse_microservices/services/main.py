@@ -18,17 +18,17 @@ def analyze_repository(repository, results_df):
 
         print(dockercompose)
         mongo_replication = analyse.detect_mongo_replication(dockercompose=dockercompose)
-        mongo_replication_status = "Present" if mongo_replication is True else mongo_replication is   "Not"
+        mongo_replication_status = "Present" if mongo_replication is True else  "Not"
 
         detect_master_slave_replication = analyse.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
-        master_slave_replication_status = "Present" if detect_master_slave_replication is not None else "Not"
+        master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not"
 
         possible_event_sourcing = check_event_sourcing(images)
         event_sourcing_status = "Present" if possible_event_sourcing else "Not"
 
         directories = check[0]
         check_services_in_CI = analyse.check_services_in_CI(repository=repository, directories=directories)
-        microservices_in_CI_status = "Present" if check_services_in_CI is None else "Not"
+        microservices_in_CI_status = "Present" if check_services_in_CI is not None else "Not"
 
         load_balancing = detect_load_balancer(repository=repository, images=images)
         load_balancing_status = process_load_balancer_result(load_balancing)
