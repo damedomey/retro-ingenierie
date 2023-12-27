@@ -66,7 +66,7 @@ class analyzer():
                     docker_compose_path = search_for_docker_compose(sub_contents, path)
                     if docker_compose_path:
                         return docker_compose_path
-                elif content.name.lower() == 'docker-compose.yml' or 'docker-compose' in content.name.lower():
+                elif (content.name.lower() == 'docker-compose.yml' or 'docker-compose' in content.name.lower()) and ('.yaml' or '.yml' in content.name.lower()):
                     docker_compose_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
                     return docker_compose_content  # Retourne le contenu du fichier 'docker-compose.yml'
                 elif content.name.lower()=='dockerfile':
@@ -91,9 +91,8 @@ class analyzer():
 
         # Obtenez la liste des services
         return get_docker_services_from_compose(dockercompose)
-        
-
-
+    
+    
     
     def has_Jenkinsfile(self, repository):
         # Obtenez la liste des fichiers dans le dépôt
@@ -125,6 +124,7 @@ class analyzer():
         return False
     
     def detect_mongo_replication(self,dockercompose):
+
 
         dockercompose = yaml.safe_load(dockercompose)
         if dockercompose is None:
@@ -226,3 +226,75 @@ def get_docker_services_from_compose(file_content):
         service_names = list(services.keys())
 
     return service_names
+
+def check_event_sourcing(images_from_dockercompose):
+    images = images_from_dockercompose
+    possible_event_sourcing = False
+    for image in images:
+        if("kafka" in image or "rabbitmq" in image ):
+            possible_event_sourcing = True
+    return possible_event_sourcing
+
+def detect_scalability_in_nginx_conf(nginx_content):
+    keywords = ["upstream", "least_conn", "round_robin", "ip_hash", "proxy_pass", "proxy_set_header", "health_check", "reload-config"]
+
+    for keyword in keywords:
+        if keyword in nginx_content:
+            return True
+
+    # Check for upstream blocks
+    if "upstream" in nginx_content and "server" in nginx_content:
+        return True
+
+    return False
+        
+    
+def search_for_nginx_conf(repository,contents, current_path=""):
+    for content in contents:
+        if content.type == "dir":
+            sub_contents = repository.get_contents(content.path)
+            path = f"{current_path}/{content.name}" if current_path else content.name
+            nginx_conf = search_for_nginx_conf(repository,sub_contents, path)
+            if nginx_conf:
+                return nginx_conf
+        elif content.name.lower() == 'nginx.conf' or 'nginx' in content.name.lower():
+            nginx_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
+            return nginx_content
+        ## haproxy
+        elif content.name.lower() == 'haproxy.cfg' or 'haproxy' in content.name.lower():
+            nginx_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
+            return nginx_content
+        ## traefik
+        elif content.name.lower() == 'traefik.yml' or 'traefik' in content.name.lower():
+            nginx_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
+            return nginx_content
+
+    return None
+
+def detect_scalability_in_nginx_conf(nginx_content):
+    keywords = ["upstream", "server", "listen", "proxy_pass", "proxy_set_header", "proxy_http_version", "location","balance","roundrobin","leastconn","ip_hash","health_check","reload-config","listen","loadBalancer"]
+    for keyword in keywords:
+        if keyword in nginx_content:
+            return True
+    return False
+
+def detect_load_balancer(repository, images):
+    possible_load_balancing = False
+
+    # Check if images contain 'haproxy' or 'nginx'
+    if images and any(("haproxy" in image or "nginx" in image) for image in images):
+        possible_load_balancing = True
+
+    # Search for nginx.conf
+    contents = repository.get_contents("")
+    nginx = search_for_nginx_conf(repository=repository,contents=contents)
+
+    if nginx is None:
+        return possible_load_balancing, "nginx.conf not found"
+
+    # Check for specific keywords in nginx.conf
+    keywords_present = detect_scalability_in_nginx_conf(nginx)
+    if keywords_present:
+        return True, "scalability present"
+    else:
+        return possible_load_balancing, "scalability not present"
