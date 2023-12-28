@@ -66,7 +66,6 @@ def is_load_balancing_configured(file_path):
             for block in upstream_blocks:
                 # Count the number of uncommented server entries in each upstream block
                 server_lines = block.split('\n')
-                print(server_lines)
                 server_count = sum('server' in line and not line.strip().startswith('#') for line in server_lines)
 
                 # If any upstream block has more than one server, it's load balancing
