@@ -17,6 +17,12 @@ class DB_Analyser_Naive():
             if compose_data:
                 db_usage_count = self.__count_db_usage_naive(compose_data)
                 self.__check_single_usage(db_usage_count)
+
+                # Vérifier si l'un des éléments est égal à 0
+                if 0 in db_usage_count.values():
+                    print("\n[ "+Couleurs.ROUGE + "KO" + Couleurs.RESET+" ] Au moins une DB n'est pas dans les depends_on ....\n")
+                    return False
+
                 if len(db_usage_count) > 0:
                     print("\n[ " + Couleurs.VERT + "OK" + Couleurs.RESET + " ] Depends_on trouvé 🎉\n")
                     return True

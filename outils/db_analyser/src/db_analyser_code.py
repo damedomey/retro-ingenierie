@@ -14,6 +14,8 @@ class DB_Analyser_Code():
         docker_compose_file = "docker-compose.yml"
         content = repository.get_contents(docker_compose_file)
 
+        self.repository = repository
+
         db_names_in_services = set()
 
         if content:
@@ -25,10 +27,13 @@ class DB_Analyser_Code():
                     db_names_in_services.add(service_name.lower())
 
             db_count_list = self.__find_db(repository, db_names_in_services)
+
             self.csv_manager.right(db_count_list)
+            print(db_count_list)
             if len(db_count_list) > 0:
                 return True
             else:
+                print("Pas de depends_on pour les DBs ....")
                 return False
         else:
             return False
@@ -98,11 +103,17 @@ class DB_Analyser_Code():
 
         for keyword in keywords:
             analyse = self.__search_keyword_in_files(repository, keyword, files)
+
+            if len(analyse) <= 0:
+                print("\n" + Couleurs.JAUNE + "WARNING : no file found ..." + Couleurs.RESET + "\n")
+                analyse = self.__var_env_docker_compose_research(keyword)
+
             db_used.append([keyword, analyse])
 
         return db_used
 
     def __search_keyword_in_files(self, repository, keyword, files):
+
         found_files = []
 
         for file in files:
@@ -119,3 +130,44 @@ class DB_Analyser_Code():
                 print("[ "+Couleurs.ROUGE+"ERROR"+Couleurs.RESET+" ] : "+Couleurs.ROUGE+"Lors du traitement du fichier "+file+": "+str(e)+""+Couleurs.RESET+"")
 
         return found_files
+
+    def __var_env_docker_compose_research(self, db_name):
+        print("[ "+Couleurs.JAUNE+"COMPOSE"+Couleurs.RESET+" ]" + db_name + " in docker compose var env ? ")
+
+        docker_compose_file = "docker-compose.yml"
+        content = self.repository.get_contents(docker_compose_file)
+        compose_data = yaml.safe_load(content.decoded_content)
+
+        #print(compose_data)
+        occurrences = self.__count_db_name_occurrences(compose_data, db_name)
+
+        print(f"Nombre d'apparitions de {db_name} : {len(occurrences)}")
+
+        return occurrences
+
+    def __count_db_name_occurrences(self, compose_data, db_name):
+
+        services = compose_data.get("services", {})
+        tmp = False
+        cpt = []
+
+        for service_name, service in services.items():
+            #print(f"Variables d'environnement pour le service '{service_name}':")
+
+            if service_name.lower() != db_name.lower():
+                environment_vars = service.get("environment", [])
+                for env_var in environment_vars:
+                    #print(f"  - {env_var}")
+                    if db_name.lower() in env_var.lower():
+                        #print("TEST ok")
+                        print("[ "+Couleurs.JAUNE+""+db_name+""+Couleurs.RESET+" ] in " + service_name + " : " + env_var)
+                        tmp = True
+                if tmp:
+                    tmp= False
+                    cpt.append("VAR_ENV_IN_" + service_name)
+
+        return cpt
+
+
+
+

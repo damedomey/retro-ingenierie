@@ -4,7 +4,7 @@ from src.db_analyser_code import DB_Analyser_Code
 
 #repo_name = "amigoscode/microservices"
 repo_name = "Theophile-Yvars/Bank_microservice"
-access_token = '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'
+access_token = ''
 
 def naive_analyse(repository):
     analyser = DB_Analyser_Naive()
