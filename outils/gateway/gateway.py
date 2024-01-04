@@ -1,32 +1,28 @@
 from github import Github, Repository
 import re
-import os
 
-class InfoDockerCompose():
-    def __init__(self):
-        print("Info Docker Compose", flush=True)
-        self.docker_compose = None
+from utils.Colors import Couleurs
 
-    def has_docker_compose(self, repository:Repository):
-        # Obtenez la liste des fichiers dans le dépôt
-        contents = repository.get_contents("")
 
-        # Vérifiez si 'docker-compose.yml' est parmi les fichiers du dépôt
-        for content in contents:
-            #print("Folder name : " + content.name)
-            #print(content)
-            if content.name.lower() == 'docker-compose.yml':
-                return True
+class Gateway():
+    def __init__(self, token):
+        print("GATEWAY")
+        self.__access_token = token
 
-        return False
+    def run(self, repo_name):
+        g = Github(self.__access_token)
+        repository: Repository = g.get_repo(repo_name)
 
-    def has_gateway(self, repository: Repository):
         # Dans le compose
-        gateway_in_docker_compose = self.__check_gateway_in_docker_compose(repository)
+        if self.__check_gateway_in_docker_compose(repository):
+            print("[ "+Couleurs.VERT+"Gateway in docker compose"+Couleurs.RESET+" ]")
+            return True
 
-        # Dans les pom.xml
-        gateway_in_pom_files = self.__check_gateway_in_pom_files(repository)
+        if self.__check_gateway_in_pom_files(repository):
+            print("[ "+Couleurs.VERT+"Gateway in pom files"+Couleurs.RESET+" ]")
+            return True
 
+        print("[ " + Couleurs.ROUGE + "No gateway" + Couleurs.RESET + " ]")
         return False
 
     def __check_gateway_in_docker_compose(self, repository):
@@ -53,6 +49,7 @@ class InfoDockerCompose():
                 # Check if the gateway keyword is present in the pom.xml content
                 if gateway_pattern.search(pom_content):
                     print(f"Gateway keyword found in {content.path}")
+                    return True
                 else:
                     print(f"Gateway keyword not found in {content.path}")
-
+        return False
