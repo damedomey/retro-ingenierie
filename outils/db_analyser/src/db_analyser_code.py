@@ -1,20 +1,19 @@
-from github import Github
 import requests
 import yaml
-from outils.db_analyser.src.csv_manager import CSV_Manager
-from outils.db_analyser.utils.Colors import Couleurs
+#from outils.db_analyser.src.csv_manager import CSV_Manager
+from utils.Colors import Couleurs
 
 class DB_Analyser_Code():
     def __init__(self, access_token):
         print("DB_Analyser_Code")
-        self.access_token = access_token
-        self.csv_manager = CSV_Manager()
+        self.__access_token = access_token
+        #self.__csv_manager = CSV_Manager()
 
     def run(self, repository):
         docker_compose_file = "docker-compose.yml"
         content = repository.get_contents(docker_compose_file)
 
-        self.repository = repository
+        repository = repository
 
         db_names_in_services = set()
 
@@ -28,15 +27,15 @@ class DB_Analyser_Code():
 
             db_count_list = self.__find_db(repository, db_names_in_services)
 
-            self.csv_manager.right(db_count_list)
+            #self.__csv_manager.right(db_count_list)
             print(db_count_list)
             if len(db_count_list) > 0:
-                return True
+                return True, db_count_list
             else:
                 print("Pas de depends_on pour les DBs ....")
-                return False
+                return False, {}
         else:
-            return False
+            return False, {}
 
     def __find_db(self, repository, db_name_list):
         db_count_list = {}
@@ -90,7 +89,7 @@ class DB_Analyser_Code():
     def __get_repo_files(self, repository):
         url = f'https://api.github.com/repos/{repository.owner.login}/{repository.name}/git/trees/main?recursive=1'
 
-        response = requests.get(url, headers={"Authorization": f"Bearer {self.access_token}"})
+        response = requests.get(url, headers={"Authorization": f"Bearer {self.__access_token}"})
         response.raise_for_status()
 
         files = [item['path'] for item in response.json().get('tree', []) if item.get('type') == 'blob']
@@ -106,7 +105,7 @@ class DB_Analyser_Code():
 
             if len(analyse) <= 0:
                 print("\n" + Couleurs.JAUNE + "WARNING : no file found ..." + Couleurs.RESET + "\n")
-                analyse = self.__var_env_docker_compose_research(keyword)
+                analyse = self.__var_env_docker_compose_research(keyword, repository)
 
             db_used.append([keyword, analyse])
 
@@ -131,11 +130,11 @@ class DB_Analyser_Code():
 
         return found_files
 
-    def __var_env_docker_compose_research(self, db_name):
+    def __var_env_docker_compose_research(self, db_name, repository):
         print("[ "+Couleurs.JAUNE+"COMPOSE"+Couleurs.RESET+" ]" + db_name + " in docker compose var env ? ")
 
         docker_compose_file = "docker-compose.yml"
-        content = self.repository.get_contents(docker_compose_file)
+        content = repository.get_contents(docker_compose_file)
         compose_data = yaml.safe_load(content.decoded_content)
 
         #print(compose_data)

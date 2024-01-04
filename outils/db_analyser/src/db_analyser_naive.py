@@ -1,12 +1,12 @@
 import yaml
 
-from outils.db_analyser.utils.Colors import Couleurs
+from utils.Colors import Couleurs
 from outils.db_analyser.src.csv_manager import CSV_Manager
 
 class DB_Analyser_Naive():
     def __init__(self):
         print("BD ANALYSER", flush=True)
-        self.csv_manager = CSV_Manager()
+        self.__csv_manager = CSV_Manager()
 
     def run(self, repository):
         docker_compose_file = "docker-compose.yml"
@@ -21,18 +21,18 @@ class DB_Analyser_Naive():
                 # Vérifier si l'un des éléments est égal à 0
                 if 0 in db_usage_count.values():
                     print("\n[ "+Couleurs.ROUGE + "KO" + Couleurs.RESET+" ] Au moins une DB n'est pas dans les depends_on ....\n")
-                    return False
+                    return False, {}
 
                 if len(db_usage_count) > 0:
                     print("\n[ " + Couleurs.VERT + "OK" + Couleurs.RESET + " ] Depends_on trouvé 🎉\n")
-                    return True
+                    return True, db_usage_count
                 else:
                     print("\n[ "+Couleurs.ROUGE + "KO" + Couleurs.RESET+" ] Pas de depends_on trouvé 🔥 ...\n")
-                    return False
+                    return False, {}
             else:
-                return False
+                return False, {}
 
-        return False
+        return False, {}
 
     def __load_docker_compose(self, file_content):
         compose_data = yaml.safe_load(file_content)
@@ -71,9 +71,9 @@ class DB_Analyser_Naive():
         return db_usage_count
 
     def __check_single_usage(self, db_usage_count):
-        self.csv_manager.right(db_usage_count)
+        self.__csv_manager.write(db_usage_count)
         for db_name, usage_count in db_usage_count.items():
             if usage_count > 1:
-                print( f"WARNING: Database '{db_name}' is used by {usage_count} services. It should be used by at most one service. KO")
+                print("["+Couleurs.JAUNE+" WARNING "+Couleurs.RESET+"]: Database "+Couleurs.VERT+""+db_name+""+Couleurs.RESET+" is used by "+Couleurs.ROUGE+" ",usage_count,""+Couleurs.RESET+" services. It should be used by at most one service. KO")
             else:
                 print(f"Database '{db_name}' is used by {usage_count} services. OK")

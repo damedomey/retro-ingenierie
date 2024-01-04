@@ -4,14 +4,14 @@ class CSV_Manager():
     def __init__(self):
         print("CSV MANAGER")
 
-    def right(self, data):
+    def write(self, data):
         """
             On veut ca dans data, exemple :
             {'cassandra1': 1, 'client-bd': 1, 'analysis-db': 1, 'product-db': 1, 'marketing-db-slave': 3, 'marketing-db-master': 2, 'stats-db': 1}
         """
 
         # Le nom du fichier CSV à créer
-        nom_fichier_csv = 'db_usage.csv'
+        nom_fichier_csv = './datas/DB_analyse/db_usage.csv'
 
         # Écrire le dictionnaire dans un fichier CSV
         with open(nom_fichier_csv, mode='w', newline='') as fichier_csv:

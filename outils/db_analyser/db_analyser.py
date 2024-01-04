@@ -13,14 +13,21 @@ class DB_analyser():
         g = Github(self.__access_token)
         repository: Repository = g.get_repo(repo_name)
 
-        if self.__naive_analyse(repository):
+        is_naive_works, resutlat = self.__naive_analyse(repository)
+        if is_naive_works:
             print("\nNaive analyse OK 🎉\n")
-        elif self.__code_analse(repository):
-            print("\nCode analyse OK 🎉\n")
-        else:
-            print("\nDB analyse KO .... 🔥\n")
+            g.close()
+            return resutlat
 
+        is_code_works, resutlat = self.__code_analse(repository)
+        if is_code_works:
+            print("\nCode analyse OK 🎉\n")
+            g.close()
+            return resutlat
+
+        print("\nDB analyse KO .... 🔥\n")
         g.close()
+        return {}
 
     def __naive_analyse(self, repository):
         analyser = DB_Analyser_Naive()
