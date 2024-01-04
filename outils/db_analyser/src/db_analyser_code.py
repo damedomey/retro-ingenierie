@@ -1,8 +1,8 @@
 from github import Github
 import requests
 import yaml
-from src.csv_manager import CSV_Manager
-from utils.Colors import Couleurs
+from outils.db_analyser.src.csv_manager import CSV_Manager
+from outils.db_analyser.utils.Colors import Couleurs
 
 class DB_Analyser_Code():
     def __init__(self, access_token):
