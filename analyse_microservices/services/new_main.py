@@ -1,6 +1,6 @@
 import pandas as pd
 from github import Github
-from utils.lib import analyzer
+from utils.dockercompose import analyzer
 from utils.mongo_analyse import mongo_analyzer
 from utils.gateway import gateway_analyzer
 from utils.cicd_analyzer import cicd_analyzer
