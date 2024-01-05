@@ -1,6 +1,15 @@
 import pandas as pd
 from github import Github
-from lib import analyzer, check_event_sourcing, detect_load_balancer
+from utils.lib import analyzer
+from utils.mongo_analyse import mongo_analyzer
+from utils.gateway import gateway_analyzer
+from utils.cicd_analyzer import cicd_analyzer
+from utils.event_sourcing import check_event_sourcing
+from utils.load_balacing import detect_load_balancer
+from utils.master_slave import masterslave_analyzer
+from utils.individualdeployment import individualdeployment
+
+
 
 def analyze_repository(repository, results_df):
     print("Analyzing repo: " + repository.full_name, flush=True)
@@ -10,34 +19,43 @@ def analyze_repository(repository, results_df):
     docker_compose_status = "Present" if dockercompose is not None else "Not"
 
     if dockercompose is not None:
-        print("hamza1")
         directories = analyse.get_all_directories(repository=repository, path="")
         images = analyse.get_services_from_docker_compose(repository=repository, dockercompose=dockercompose)
-        check = analyse.check_if_there_is_custom_images(repository=repository, images_from_dockercompose=images, directories=directories)
-        print("hamza2")
+
+        individual_deployment = individualdeployment()
+
+        check = individual_deployment.check_if_there_is_custom_images(repository=repository, images_from_dockercompose=images, directories=directories)
         custom_images = "Present" if check else "Not"
 
-        mongo_replication = analyse.detect_mongo_replication(dockercompose=dockercompose)
+        mongoanalyzer =  mongo_analyzer()
+
+        mongo_replication = mongoanalyzer.detect_mongo_replication(dockercompose=dockercompose)
         mongo_replication_status = "Present" if mongo_replication is True else  "Not"
 
-        print("hamza3")
-        detect_master_slave_replication = analyse.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
+
+        masterslave = masterslave_analyzer()
+        detect_master_slave_replication = masterslave.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
         master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not"
+
 
         possible_event_sourcing = check_event_sourcing(images)
         event_sourcing_status = "Present" if possible_event_sourcing else "Not"
 
         directories = check[0]
-        check_services_in_CI = analyse.check_services_in_CI(repository=repository, directories=directories)
+
+        cicd = cicd_analyzer()
+        check_services_in_CI = cicd.check_services_in_CI(repository=repository, directories=directories)
         microservices_in_CI_status = "Present" if check_services_in_CI is not None else "Not"
 
-        load_balancing = detect_load_balancer(repository=repository, images=images)
-        load_balancing_status = process_load_balancer_result(load_balancing)
+        #lb = loadbalancer_analyzer()
+        load_balancing_check = detect_load_balancer(repository=repository, images=images)
+        load_balancing_status = process_load_balancer_result(load_balancing_check)
 
-        gateway = analyse.detect_gateway(dockercompose=dockercompose,directories=directories)
-        print(gateway)
+
+
+        gatewayanalyse = gateway_analyzer()
+        gateway = gatewayanalyse.detect_gateway(dockercompose=dockercompose,directories=directories)
         gateway_status = "Present" if gateway is True else "Not"
-        print("hamza4")
     else:
         mongo_replication_status = "Not"
         master_slave_replication_status = "Not"
@@ -47,6 +65,7 @@ def analyze_repository(repository, results_df):
         directories = analyse.get_all_directories(repository=repository, path="")
         check_services_in_CI = analyse.check_services_in_CI(repository=repository, directories=directories)
         microservices_in_CI_status = "Present" if check_services_in_CI is not None else "Not"
+
 
         load_balancing = detect_load_balancer(repository=repository, images=None)
         load_balancing_status = process_load_balancer_result(load_balancing)
@@ -64,7 +83,6 @@ def analyze_repository(repository, results_df):
         'Gateway': gateway_status
     }, ignore_index=True)
 
-    print("hamza5")
 
     return results_df
 
