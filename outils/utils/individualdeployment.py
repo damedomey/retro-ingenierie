@@ -5,7 +5,7 @@ class individual_deployment():
     def __init__(self):
         print("Info ", flush=True)
 
-    def check_if_there_is_custom_images(self, repository,images_from_dockercompose,directories):
+    def check_if_there_is_custom_images(self,images_from_dockercompose,directories):
         correspondences = []
         deployed_services = 0
         directories = directories

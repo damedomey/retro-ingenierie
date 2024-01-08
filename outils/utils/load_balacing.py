@@ -64,5 +64,15 @@ class loadbalancer_analyzer():
             if keyword in nginx_content:
                 return True
         return False
+    
+    def process_load_balancer_result(self,result):
+        load_balancing_status, message = result
+        if load_balancing_status:
+            if message == "scalability present":
+                return "LoadBalancing and Scalability"
+            else:
+                return"LoadBalancing and no Scalability"
+        else:
+            return "Not present"
 
 

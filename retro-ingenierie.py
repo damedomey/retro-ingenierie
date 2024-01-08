@@ -17,42 +17,42 @@ def analyze_repository(repository, results_df, token):
     dockercompose = analyse.has_docker_compose(repository=repository)
     docker_compose_status = "Present" if dockercompose is not None else "Not"
     print(docker_compose_status)
-    print("here")
 
 
     if dockercompose:
 
         ## get all directories
         directories = analyse.get_all_directories(repository=repository, path="")
-
+        images = analyse.get_services_from_docker_compose(repository=repository, dockercompose=dockercompose)
         # check custom images
 
         individualdeployment = individual_deployment()
-        check_individual_deployment = individualdeployment.check_if_there_is_custom_images(repository=repository, dockercompose=dockercompose)
-        custom_images = "Present" if check_individual_deployment else "Not"
+        check_individual_deployment = individualdeployment.check_if_there_is_custom_images(images_from_dockercompose=images, directories=directories)
+        custom_images = "Present" if check_individual_deployment else "Not present"
 
         ## check mongo replication
 
         mongoanalyzer =  mongo_analyzer()
         mongo_replication = mongoanalyzer.detect_mongo_replication(dockercompose=dockercompose)
-        mongo_replication_status = "Present" if mongo_replication is True else  "Not"
+        mongo_replication_status = "Present" if mongo_replication is True else  "Not present"
 
         ## check master slave replication
 
         masterslave = masterslave_analyzer()
         detect_master_slave_replication = masterslave.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
-        master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not"
+        master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not present"
 
         ## check events
 
         event_analyse = event_analyser()
-        images = analyse.get_services_from_docker_compose(repository=repository, dockercompose=dockercompose)
-        events_status = event_analyse.check_event_sourcing(images)
+        events_check = event_analyse.check_event_sourcing(images)
+        events_status = "Present" if events_check is True else "Not present"
 
         ## load balancing and scaling
 
         lb = loadbalancer_analyzer()
-        load_balancing_status = lb.detect_load_balancer(repository=repository, images=images)
+        load_balancing_check = lb.detect_load_balancer(repository=repository, images=images)
+        load_balancing_status = lb.process_load_balancer_result(load_balancing_check)
 
         ## CI/CD
 
@@ -64,17 +64,21 @@ def analyze_repository(repository, results_df, token):
 
         gatewayanalyse = gateway_analyzer()
         gateway_check = gatewayanalyse.detect_gateway(dockercompose=dockercompose,directories=directories)
-        gateway_status = "Present" if gateway_check is True else "Not"
+        gateway_status = "Present" if gateway_check is True else "Not present"
         ## tous les autres outils 
 
         ## check db
-        db_analyser = DB_analyser(token)
-        db_analyser_result = db_analyser.run(repository=repository)
-        db_analyser_status = "Not"
-        if db_analyser_result == 1:
-            db_analyser_status = "Present"
-        elif db_analyser_result == -1:
-            db_analyser_status = "Unknow"
+
+
+        #db_analyser = DB_analyser(token)
+        #db_analyser_result = db_analyser.run(repository=repository)
+        #db_analyser_status = "Not"
+        #if db_analyser_result == 1:
+        #    db_analyser_status = "Present"
+        #elif db_analyser_result == -1:
+        #    db_analyser_status = "Unknow"
+
+        #print(db_analyser_status)
 
 
 
@@ -90,8 +94,7 @@ def analyze_repository(repository, results_df, token):
         'Events': events_status,
         'Microservices in CI/CD': microservices_in_CI_status   ,
         'Load Balancing': load_balancing_status, 
-        'DBs unique': db_analyser_status,
-        'Gateway': gateway_status,
+        'Gateway': gateway_status
 
     }, ignore_index=True)
 
@@ -102,7 +105,7 @@ def analyze_repository(repository, results_df, token):
 
 
 def main():
-    access_token = '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'
+    access_token = ''
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
@@ -121,10 +124,12 @@ def main():
             print(repository)
             try:
                 results_df = analyze_repository(repository, results_df, access_token)
+                save_to_excel(results_df, output_file)
+
                 print(results_df)
             except Exception as e:
                 print(e)
-            save_to_excel(results_df, output_file)
+                continue
 
 def save_to_excel(results_df, output_file):
     # Save the results to an Excel file
