@@ -1,7 +1,7 @@
 import yaml
 
+from outils.utils.db_analyser.src.csv_manager import CSV_Manager
 from utils.Colors import Couleurs
-from outils.analyse_microservices.utils.db_analyser.src.csv_manager import CSV_Manager
 
 class DB_Analyser_Naive():
     def __init__(self):
