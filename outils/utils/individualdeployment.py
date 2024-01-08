@@ -1,7 +1,7 @@
 from dockerfile_parse import DockerfileParser
 import yaml
 
-class individualdeployment():
+class individual_deployment():
     def __init__(self):
         print("Info ", flush=True)
 

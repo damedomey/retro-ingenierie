@@ -1,6 +1,10 @@
 from github import Github
 import pandas as pd
 from outils.utils.docker_compose_analyser import Docker_compose_analyser
+from outils.utils.individualdeployment import individual_deployment
+from outils.utils.mongo_analyse import mongo_analyzer
+from outils.utils.master_slave import masterslave_analyzer
+
 
 def analyze_repository(repository, results_df):
     # check docker compose 
@@ -10,6 +14,26 @@ def analyze_repository(repository, results_df):
     docker_compose_status = "Present" if dockercompose is not None else "Not"
 
     if dockercompose:
+
+        # check custom images
+
+        individualdeployment = individual_deployment()
+        check_individual_deployment = individualdeployment.check_if_there_is_custom_images(repository=repository, dockercompose=dockercompose)
+        custom_images = "Present" if check_individual_deployment else "Not"
+
+        ## check mongo replication
+
+        mongoanalyzer =  mongo_analyzer()
+        mongo_replication = mongoanalyzer.detect_mongo_replication(dockercompose=dockercompose)
+        mongo_replication_status = "Present" if mongo_replication is True else  "Not"
+
+        ## check master slave replication
+
+        masterslave = masterslave_analyzer()
+        detect_master_slave_replication = masterslave.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
+        master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not"
+
+
         
         ## tous les autres outils 
 
@@ -18,7 +42,11 @@ def analyze_repository(repository, results_df):
 
     results_df = results_df._append({
         'Repo Name': repository.full_name,
-        'Docker Compose Present': docker_compose_status
+        'Docker Compose Present': docker_compose_status,
+        'Custom Images in Docker Compose': custom_images,
+        'MongoDB Replication': mongo_replication_status,
+        'Master Slave Replication': master_slave_replication_status,
+        
     }, ignore_index=True)
 
     return results_df
