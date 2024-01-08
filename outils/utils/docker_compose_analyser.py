@@ -22,55 +22,55 @@ class Docker_compose_analyser():
         print("[ " + Couleurs.ROUGE + "DOCKER COMPOSE NOT FOUND" + Couleurs.RESET + " ]")
         return False
 
-        def get_all_directories(self, repository, path=""):
-            directories = []
+    def get_all_directories(self, repository, path=""):
+        directories = []
 
-            def get_directories_recursive(repo, directory_path):
-                nonlocal directories
-                for content in repo.get_contents(directory_path):
-                    if content.type == "dir":
-                        directories.append(content.path)
-                        get_directories_recursive(repo, content.path)
+        def get_directories_recursive(repo, directory_path):
+            nonlocal directories
+            for content in repo.get_contents(directory_path):
+                if content.type == "dir":
+                    directories.append(content.path)
+                    get_directories_recursive(repo, content.path)
 
-            get_directories_recursive(repository, path)
-            return directories
+        get_directories_recursive(repository, path)
+        return directories
 
-        def calculate_directory_sizes(self, repo, directories):
-            directory_sizes = {}
-            for directory in directories:
-                contents = repo.get_contents(directory)
-                size = sum(file.size for file in contents if file.type == "file")
-                directory_sizes[directory] = size
+    def calculate_directory_sizes(self, repo, directories):
+        directory_sizes = {}
+        for directory in directories:
+            contents = repo.get_contents(directory)
+            size = sum(file.size for file in contents if file.type == "file")
+            directory_sizes[directory] = size
 
-            return directory_sizes
+        return directory_sizes
 
-        def has_docker_compose(self, repository):
-            def search_for_docker_compose(contents, current_path=""):
-                dockerfile = 0
-                for content in contents:
-                    if content.type == "dir":
-                        sub_contents = repository.get_contents(content.path)
-                        path = current_path + "/" + content.name if current_path else content.name
-                        docker_compose_path = search_for_docker_compose(sub_contents, path)
-                        if docker_compose_path:
-                            return docker_compose_path
-                    elif (
-                            content.name.lower() == 'docker-compose.yml' or 'docker-compose' in content.name.lower()) and (
-                            '.yaml' or '.yml' in content.name.lower()):
-                        docker_compose_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
-                        return docker_compose_content  # Retourne le contenu du fichier 'docker-compose.yml'
-                    elif content.name.lower() == 'dockerfile':
-                        dockerfile += 1
+    def has_docker_compose(self, repository):
+        def search_for_docker_compose(contents, current_path=""):
+            dockerfile = 0
+            for content in contents:
+                if content.type == "dir":
+                    sub_contents = repository.get_contents(content.path)
+                    path = current_path + "/" + content.name if current_path else content.name
+                    docker_compose_path = search_for_docker_compose(sub_contents, path)
+                    if docker_compose_path:
+                        return docker_compose_path
+                elif (
+                        content.name.lower() == 'docker-compose.yml' or 'docker-compose' in content.name.lower()) and (
+                        '.yaml' or '.yml' in content.name.lower()):
+                    docker_compose_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
+                    return docker_compose_content  # Retourne le contenu du fichier 'docker-compose.yml'
+                elif content.name.lower() == 'dockerfile':
+                    dockerfile += 1
 
-                return None
+            return None
 
-            contents = repository.get_contents("")
-            return search_for_docker_compose(contents)
+        contents = repository.get_contents("")
+        return search_for_docker_compose(contents)
 
-        def get_services_from_docker_compose(self, repository, dockercompose):
-            if dockercompose is None:
-                return None
-            return self.get_docker_services_from_compose(dockercompose)
+    def get_services_from_docker_compose(self, repository, dockercompose):
+        if dockercompose is None:
+            return None
+        return self.get_docker_services_from_compose(dockercompose)
 
     def get_docker_images_from_compose(self, file_content):
         images_list = []

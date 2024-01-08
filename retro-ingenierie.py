@@ -1,8 +1,30 @@
 from github import Github
 import pandas as pd
+from outils.utils.docker_compose_analyser import Docker_compose_analyser
 
-def analyze_repository():
-    # appel des outils
+def analyze_repository(repository, results_df):
+    # check docker compose 
+
+    analyse = Docker_compose_analyser()
+    dockercompose = analyse.has_docker_compose(repository=repository)
+    docker_compose_status = "Present" if dockercompose is not None else "Not"
+
+    if dockercompose:
+        
+        ## tous les autres outils 
+
+
+
+
+    results_df = results_df._append({
+        'Repo Name': repository.full_name,
+        'Docker Compose Present': docker_compose_status
+    }, ignore_index=True)
+
+    return results_df
+
+
+
 
 
 def main():

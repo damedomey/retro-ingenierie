@@ -1,8 +1,0 @@
-BD service name,Count
-cassandra1,1
-client-bd,1
-analysis-db,1
-product-db,1
-marketing-db-slave,3
-marketing-db-master,2
-stats-db,1
