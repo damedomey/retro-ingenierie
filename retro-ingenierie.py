@@ -14,8 +14,10 @@ def analyze_repository(repository, results_df, token):
     # check docker compose 
 
     analyse = Docker_compose_analyser()
-    dockercompose = analyse.has_docker_compose(repository=repository)
+    dockercompose = analyse.check_docker_compose(repository=repository)
     docker_compose_status = "Present" if dockercompose is not None else "Not"
+    print("here")
+
 
     if dockercompose:
 
@@ -85,10 +87,10 @@ def analyze_repository(repository, results_df, token):
         'MongoDB Replication': mongo_replication_status,
         'Master Slave Replication': master_slave_replication_status,
         'Events': events_status,
-        'Load Balancing': load_balancing_status, 
         'Microservices in CI/CD': microservices_in_CI_status   ,
-        'Gateway': gateway_status,
+        'Load Balancing': load_balancing_status, 
         'DBs unique': db_analyser_status,
+        'Gateway': gateway_status,
 
     }, ignore_index=True)
 
@@ -99,14 +101,14 @@ def analyze_repository(repository, results_df, token):
 
 
 def main():
-    access_token = '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'
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
     columns = [
         'Repo Name', 'Docker Compose Present', 'Custom Images in Docker Compose',
         'MongoDB Replication', 'Master Slave Replication', 'Events',
-        'Microservices in CI/CD', 'Load Balancing', 'DBs unique'
+        'Microservices in CI/CD', 'Load Balancing', 'DBs unique','Gateway'
     ]
     results_df = pd.DataFrame(columns=columns)
     output_file = "./output/output.xlsx"
