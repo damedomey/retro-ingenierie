@@ -14,8 +14,9 @@ def analyze_repository(repository, results_df, token):
     # check docker compose 
 
     analyse = Docker_compose_analyser()
-    dockercompose = analyse.check_docker_compose(repository=repository)
+    dockercompose = analyse.has_docker_compose(repository=repository)
     docker_compose_status = "Present" if dockercompose is not None else "Not"
+    print(docker_compose_status)
     print("here")
 
 
@@ -101,7 +102,7 @@ def analyze_repository(repository, results_df, token):
 
 
 def main():
-    access_token = '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'
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
@@ -122,8 +123,7 @@ def main():
                 results_df = analyze_repository(repository, results_df, access_token)
                 print(results_df)
             except Exception as e:
-                continue
-
+                print(e)
             save_to_excel(results_df, output_file)
 
 def save_to_excel(results_df, output_file):

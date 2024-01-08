@@ -6,8 +6,8 @@ from utils.Colors import Couleurs
 
 
 class Docker_compose_analyser():
-    def __init__(self, token):
-        self.__access_token = token
+    def __init__(self):
+        print("Info ", flush=True)
 
     def run(self, repository):
         print("DOCKER COMPOSE PRESENCE DETECTION", flush=True)
@@ -44,18 +44,15 @@ class Docker_compose_analyser():
 
         return directory_sizes
 
-    def check_docker_compose(self, repository):
-        print("DOCKER COMPOSE PRESENCE DETECTION")
-        contents = repository.get_contents("")
-        return self.search_for_docker_compose(repository,contents)
-    
-    def search_for_docker_compose(self,repository,contents, current_path=""):
+    def has_docker_compose(self, repository):
+        
+        def search_for_docker_compose(contents, current_path=""):
             dockerfile = 0
             for content in contents:
                 if content.type == "dir":
                     sub_contents = repository.get_contents(content.path)
                     path = current_path + "/" + content.name if current_path else content.name
-                    docker_compose_path = self.search_for_docker_compose(sub_contents, path)
+                    docker_compose_path = search_for_docker_compose(sub_contents, path)
                     if docker_compose_path:
                         return docker_compose_path
                 elif (
@@ -67,6 +64,9 @@ class Docker_compose_analyser():
                     dockerfile += 1
 
             return None
+
+        contents = repository.get_contents("")
+        return search_for_docker_compose(contents)
 
     def get_services_from_docker_compose(self, repository, dockercompose):
         if dockercompose is None:
