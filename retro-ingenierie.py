@@ -4,6 +4,10 @@ from outils.utils.docker_compose_analyser import Docker_compose_analyser
 from outils.utils.individualdeployment import individual_deployment
 from outils.utils.mongo_analyse import mongo_analyzer
 from outils.utils.master_slave import masterslave_analyzer
+from outils.utils.events_analyze import event_analyser
+from outils.utils.load_balacing import loadbalancer_analyzer
+from outils.utils.CI_CD_analyze import cicd_analyzer
+from outils.utils.gateway import gateway_analyzer
 
 
 def analyze_repository(repository, results_df):
@@ -14,6 +18,9 @@ def analyze_repository(repository, results_df):
     docker_compose_status = "Present" if dockercompose is not None else "Not"
 
     if dockercompose:
+
+        ## get all directories
+        directories = analyse.get_all_directories(repository=repository, path="")
 
         # check custom images
 
@@ -34,7 +41,28 @@ def analyze_repository(repository, results_df):
         master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not"
 
 
+        ## check events
+
+        event_analyse = event_analyser()
+        images = analyse.get_services_from_docker_compose(repository=repository, dockercompose=dockercompose)
+        events_status = event_analyse.check_event_sourcing(images)
+
+        ## load balancing and scaling
+
+        lb = loadbalancer_analyzer()
+        load_balancing_status = lb.detect_load_balancer(repository=repository, images=images)
+
+        ## CI/CD
+
+        cicd = cicd_analyzer()
+        check_services_in_CI = cicd.check_services_in_CI(repository=repository, directories=directories)
+        microservices_in_CI_status = "All services" if check_services_in_CI=="all" else "Some services" if check_services_in_CI=="some" else "Not"
         
+        ## check gateway
+
+        gatewayanalyse = gateway_analyzer()
+        gateway_check = gatewayanalyse.detect_gateway(dockercompose=dockercompose,directories=directories)
+        gateway_status = "Present" if gateway_check is True else "Not"
         ## tous les autres outils 
 
 
@@ -46,7 +74,11 @@ def analyze_repository(repository, results_df):
         'Custom Images in Docker Compose': custom_images,
         'MongoDB Replication': mongo_replication_status,
         'Master Slave Replication': master_slave_replication_status,
-        
+        'Events': events_status,
+        'Load Balancing': load_balancing_status, 
+        'Microservices in CI/CD': microservices_in_CI_status   ,
+        'Gateway': gateway_status
+
     }, ignore_index=True)
 
     return results_df
@@ -62,7 +94,7 @@ def main():
     # Create an empty DataFrame to store results
     columns = [
         'Repo Name', 'Docker Compose Present', 'Custom Images in Docker Compose',
-        'MongoDB Replication', 'Master Slave Replication', 'Possible Event Sourcing',
+        'MongoDB Replication', 'Master Slave Replication', 'Events',
         'Microservices in CI/CD', 'Load Balancing', 'DBs unique'
     ]
     results_df = pd.DataFrame(columns=columns)

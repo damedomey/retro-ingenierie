@@ -1,6 +1,6 @@
 from github import Github, Repository
 
-class event_sourcing():
+class event_analyser():
     def __init__(self, token):
         self.token_github = token
 
