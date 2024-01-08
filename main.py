@@ -1,8 +1,8 @@
 import argparse
 from utils.Colors import Couleurs
-from outils.db_analyser.db_analyser import DB_analyser
-from outils.docker_compose_presence_detection.docker_compose_presence_detection import Docker_compose_presence_detection
-from outils.gateway.gateway import Gateway
+from outils.analyse_microservices.utils.db_analyser.db_analyser import DB_analyser
+from outils.analyse_microservices.utils.docker_compose_analyser import Docker_compose_analyser
+from outils.analyse_microservices.gateway_v2 import Gateway
 
 parser = argparse.ArgumentParser(description='Analyse projet microservice')
 parser.add_argument('-r', type=str, help='Repository github', required=True)
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     token_github = args.t
 
     # INIT
-    docker_compose_presence_detection = Docker_compose_presence_detection(token_github)
+    docker_compose_presence_detection = Docker_compose_analyser(token_github)
     db_analyser = DB_analyser(token_github)
     gateway = Gateway(token_github)
 

@@ -10,7 +10,6 @@ class gateway_analyzer():
         if dockercompose is None:
             return None
 
-
         for directory in directories:
             if directory.lower()=="gateway"   or "gateway" in directory.lower():              
                 return True

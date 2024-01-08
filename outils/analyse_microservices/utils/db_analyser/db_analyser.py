@@ -1,7 +1,7 @@
 from github import Github, Repository
 
-from outils.db_analyser.src.db_analyser_naive import DB_Analyser_Naive
-from outils.db_analyser.src.db_analyser_code import DB_Analyser_Code
+from outils.analyse_microservices.utils.db_analyser.src.db_analyser_naive import DB_Analyser_Naive
+from outils.analyse_microservices.utils.db_analyser.src.db_analyser_code import DB_Analyser_Code
 
 class DB_analyser():
     def __init__(self, access_token):

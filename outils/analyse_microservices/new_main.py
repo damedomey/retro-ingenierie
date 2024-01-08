@@ -3,7 +3,7 @@ from github import Github
 from utils.dockercompose import analyzer
 from utils.mongo_analyse import mongo_analyzer
 from utils.gateway import gateway_analyzer
-from utils.cicd_analyzer import cicd_analyzer
+from outils.analyse_microservices.cicd_analyzer.cicd_analyzer import cicd_analyzer
 from utils.event_sourcing import check_event_sourcing
 from utils.load_balacing import detect_load_balancer
 from utils.master_slave import masterslave_analyzer
@@ -123,9 +123,9 @@ def main():
         'Microservices in CI/CD', 'Load Balancing'
     ]
     results_df = pd.DataFrame(columns=columns)
-    output_file = "C:/Users/21264/Videos/retro-ingenierie/output/output.xlsx"
+    output_file = "./output/output.xlsx"
 
-    with open("C:/Users/21264/Videos/retro-ingenierie/extracted_data.csv", "r") as csv_file:
+    with open("./extracted_data.csv", "r") as csv_file:
         for line in csv_file:
             repo_name = line.strip()
             repository = g.get_repo(repo_name)
