@@ -88,7 +88,7 @@ def analyze_repository(repository, results_df, token):
         'Load Balancing': load_balancing_status, 
         'Microservices in CI/CD': microservices_in_CI_status   ,
         'Gateway': gateway_status,
-        'BD unique': db_analyser_status,
+        'DBs unique': db_analyser_status,
 
     }, ignore_index=True)
 
