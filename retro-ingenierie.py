@@ -8,9 +8,9 @@ from outils.utils.events_analyze import event_analyser
 from outils.utils.load_balacing import loadbalancer_analyzer
 from outils.utils.CI_CD_analyze import cicd_analyzer
 from outils.utils.gateway import gateway_analyzer
+from outils.utils.db_analyser.db_analyser import DB_analyser
 
-
-def analyze_repository(repository, results_df):
+def analyze_repository(repository, results_df, token):
     # check docker compose 
 
     analyse = Docker_compose_analyser()
@@ -40,7 +40,6 @@ def analyze_repository(repository, results_df):
         detect_master_slave_replication = masterslave.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
         master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not"
 
-
         ## check events
 
         event_analyse = event_analyser()
@@ -65,6 +64,17 @@ def analyze_repository(repository, results_df):
         gateway_status = "Present" if gateway_check is True else "Not"
         ## tous les autres outils 
 
+        ## check db
+        db_analyser = DB_analyser(token)
+        db_analyser_result = db_analyser.run(repository=repository)
+        db_analyser_status = "Not"
+        if db_analyser_result == 1:
+            db_analyser_status = "Present"
+        elif db_analyser_result == -1:
+            db_analyser_status = "Unknow"
+
+
+
 
 
 
@@ -77,7 +87,8 @@ def analyze_repository(repository, results_df):
         'Events': events_status,
         'Load Balancing': load_balancing_status, 
         'Microservices in CI/CD': microservices_in_CI_status   ,
-        'Gateway': gateway_status
+        'Gateway': gateway_status,
+        'BD unique': db_analyser_status,
 
     }, ignore_index=True)
 
@@ -106,7 +117,7 @@ def main():
             repository = g.get_repo(repo_name)
             print(repository)
             try:
-                results_df = analyze_repository(repository, results_df)
+                results_df = analyze_repository(repository, results_df, access_token)
                 print(results_df)
             except Exception as e:
                 continue

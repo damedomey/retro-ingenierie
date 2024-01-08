@@ -1,33 +1,33 @@
 from github import Github, Repository
 
-from outils.analyse_microservices.utils.db_analyser.src.db_analyser_naive import DB_Analyser_Naive
-from outils.analyse_microservices.utils.db_analyser.src.db_analyser_code import DB_Analyser_Code
+from outils.utils.db_analyser.src.db_analyser_naive import DB_Analyser_Naive
+from outils.utils.db_analyser.src.db_analyser_code import DB_Analyser_Code
 
 class DB_analyser():
-    def __init__(self, access_token):
+    def __init__(self, token):
+        self.access_token = token
         print("DB analyser")
-        self.__access_token = access_token
 
-    def run(self, repo_name):
+    def run(self, repository):
         print("DOCKER COMPOSE ANALYSIS", flush=True)
-        g = Github(self.__access_token)
-        repository: Repository = g.get_repo(repo_name)
-
         is_naive_works, resutlat = self.__naive_analyse(repository)
+        res = {}
         if is_naive_works:
             print("\nNaive analyse OK 🎉\n")
-            g.close()
-            return resutlat
+            res = resutlat
 
         is_code_works, resutlat = self.__code_analse(repository)
         if is_code_works:
             print("\nCode analyse OK 🎉\n")
-            g.close()
-            return resutlat
+            res = resutlat
 
-        print("\nDB analyse KO .... 🔥\n")
-        g.close()
-        return {}
+        if all(valeur == 1 for valeur in resutlat.values()):
+            return 1
+        elif all(valeur != 1 for valeur in resutlat.values()):
+            return 0
+        else:
+            print("\nDB analyse KO .... 🔥\n")
+            return -1
 
     def __naive_analyse(self, repository):
         analyser = DB_Analyser_Naive()
