@@ -105,7 +105,7 @@ def analyze_repository(repository, results_df, token):
 
 
 def main():
-    access_token = ''
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
