@@ -9,6 +9,7 @@ class DB_Analyser_Naive():
         self.__csv_manager = CSV_Manager()
 
     def run(self, repository):
+        print('BD ANALYSER NAIVE RUN')
         docker_compose_file = "docker-compose.yml"
         content = repository.get_contents(docker_compose_file)
 

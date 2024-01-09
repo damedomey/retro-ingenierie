@@ -10,23 +10,25 @@ class DB_analyser():
 
     def run(self, repository):
         print("DOCKER COMPOSE ANALYSIS", flush=True)
+        print(repository)
         is_naive_works, resutlat = self.__naive_analyse(repository)
         res = {}
         if is_naive_works:
             print("\nNaive analyse OK 🎉\n")
             res = resutlat
 
-        is_code_works, resutlat = self.__code_analse(repository)
-        if is_code_works:
-            print("\nCode analyse OK 🎉\n")
-            res = resutlat
+        if len(res) == 0:
+            is_code_works, resutlat = self.__code_analse(repository)
+            if is_code_works:
+                print("\nCode analyse OK 🎉\n")
+                res = resutlat
 
         if all(valeur == 1 for valeur in resutlat.values()):
             return 1
         elif all(valeur != 1 for valeur in resutlat.values()):
             return 0
         else:
-            print("\nDB analyse KO .... 🔥\n")
+            print("\nAnalysis of DBs presenting uncertainties... 🔥\n")
             return -1
 
     def __naive_analyse(self, repository):
