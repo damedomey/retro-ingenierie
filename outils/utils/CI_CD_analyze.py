@@ -30,6 +30,8 @@ class cicd_analyzer():
                 cpt+=1
 
         if cpt==0:
+            if file_content:
+                return "CI/CD present but no microservices found in it"
             return None
         
         elif cpt==len(directories):
