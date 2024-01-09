@@ -9,88 +9,79 @@ from outils.utils.load_balacing import loadbalancer_analyzer
 from outils.utils.CI_CD_analyze import cicd_analyzer
 from outils.utils.gateway import gateway_analyzer
 from outils.utils.db_analyser.db_analyser import DB_analyser
-from utils.Colors import Couleurs
-
 
 def analyze_repository(repository, results_df, token):
-    print(Couleurs.BLEU+"\n\n======================================================\n")
-    print(repository)
-    print("\n======================================================\n\n"+Couleurs.RESET)
+    # check docker compose 
 
-    # check docker compose
-    print("\n\n====================================================== "+Couleurs.VERT+"HAS DOCKER COMPOSE"+Couleurs.RESET+"\n")
     analyse = Docker_compose_analyser()
     dockercompose = analyse.has_docker_compose(repository=repository)
     docker_compose_status = "Present" if dockercompose is not None else "Not"
-    print("[ "+Couleurs.VERT+"DOCKER COMPOSE"+Couleurs.RESET+" ] : ", docker_compose_status)
+    print(docker_compose_status)
 
 
     if dockercompose:
-        ## check db
-        print("\n\n====================================================== "+Couleurs.VERT+"CHECK DBs"+Couleurs.RESET+"\n")
-        db_analyser = DB_analyser(token)
-        db_analyser_result = db_analyser.run(repository=repository)
-        db_analyser_status = "Not"
-        if db_analyser_result == 1:
-            db_analyser_status = "Present"
-        elif db_analyser_result == -1:
-            db_analyser_status = "Need for observation"
-        print("[ " + Couleurs.VERT + "DBs" + Couleurs.RESET + " ] : ", db_analyser_status)
 
         ## get all directories
-        print("\n\n====================================================== "+Couleurs.VERT+"GET ALL DIRECTORIES"+Couleurs.RESET+"\n")
         directories = analyse.get_all_directories(repository=repository, path="")
         images = analyse.get_services_from_docker_compose(repository=repository, dockercompose=dockercompose)
-        print("[ " + Couleurs.VERT + "IMAGES" + Couleurs.RESET + " ] : ", images)
-
         # check custom images
-        print("\n\n====================================================== "+Couleurs.VERT+"CHECK CUSTOM IMAGES"+Couleurs.RESET+"\n")
+
         individualdeployment = individual_deployment()
         check_individual_deployment = individualdeployment.check_if_there_is_custom_images(images_from_dockercompose=images, directories=directories)
         custom_images = "Present" if check_individual_deployment else "Not present"
-        print("[ " + Couleurs.VERT + "INDIVIDUAL DEPLOYMENT" + Couleurs.RESET + " ] : ", custom_images)
 
         ## check mongo replication
-        print("\n\n====================================================== "+Couleurs.VERT+"CHECK MONGO REPLICATION"+Couleurs.RESET+"\n")
+
         mongoanalyzer =  mongo_analyzer()
         mongo_replication = mongoanalyzer.detect_mongo_replication(dockercompose=dockercompose)
         mongo_replication_status = "Present" if mongo_replication is True else  "Not present"
-        print("[ " + Couleurs.VERT + "MONGO REPLICATION" + Couleurs.RESET + " ] : ", mongo_replication_status)
 
         ## check master slave replication
-        print("\n\n====================================================== "+Couleurs.VERT+"CHECK MASTER SLAVE REPLICATION"+Couleurs.RESET+"\n")
+
         masterslave = masterslave_analyzer()
         detect_master_slave_replication = masterslave.detect_master_slave_replication(repository=repository, dockercompose=dockercompose)
         master_slave_replication_status = "Present" if detect_master_slave_replication is True else "Not present"
-        print("[ " + Couleurs.VERT + "MASTER SLAVE REPLICATION" + Couleurs.RESET + " ] : ", master_slave_replication_status)
 
         ## check events
-        print("\n\n====================================================== "+Couleurs.VERT+"CHECK EVENTS"+Couleurs.RESET+"\n")
+
         event_analyse = event_analyser()
         events_check = event_analyse.check_event_sourcing(images)
         events_status = "Present" if events_check is True else "Not present"
-        print("[ " + Couleurs.VERT + "CHECK EVENTS" + Couleurs.RESET + " ] : ", events_status)
 
         ## load balancing and scaling
-        print("\n\n====================================================== "+Couleurs.VERT+"LOAD BALANCING AND SCALING"+Couleurs.RESET+"\n")
+
         lb = loadbalancer_analyzer()
         load_balancing_check = lb.detect_load_balancer(repository=repository, images=images)
         load_balancing_status = lb.process_load_balancer_result(load_balancing_check)
-        print("[ " + Couleurs.VERT + "LOAD BALANCING STATUS" + Couleurs.RESET + " ] : ", load_balancing_status)
 
         ## CI/CD
-        print("\n\n====================================================== "+Couleurs.VERT+"CICD ANALYSER"+Couleurs.RESET+"\n")
+
         cicd = cicd_analyzer()
         check_services_in_CI = cicd.check_services_in_CI(repository=repository, directories=directories)
         microservices_in_CI_status = "All services" if check_services_in_CI=="all" else "Some services" if check_services_in_CI=="some" else "Not"
-        print("[ " + Couleurs.VERT + "CI/CD" + Couleurs.RESET + " ] : ", microservices_in_CI_status)
-
+        
         ## check gateway
-        print("\n\n======================================================= "+Couleurs.VERT+"CHECK GATEWAY"+Couleurs.RESET+"\n")
+
         gatewayanalyse = gateway_analyzer()
         gateway_check = gatewayanalyse.detect_gateway(dockercompose=dockercompose,directories=directories)
         gateway_status = "Present" if gateway_check is True else "Not present"
-        print("[ " + Couleurs.VERT + "GATEWAY" + Couleurs.RESET + " ] : ", gateway_status)
+        ## tous les autres outils 
+
+        ## check db
+
+
+        #db_analyser = DB_analyser(token)
+        #db_analyser_result = db_analyser.run(repository=repository)
+        #db_analyser_status = "Not"
+        #if db_analyser_result == 1:
+        #    db_analyser_status = "Present"
+        #elif db_analyser_result == -1:
+        #    db_analyser_status = "Unknow"
+
+        #print(db_analyser_status)
+
+
+
 
 
 
@@ -102,8 +93,7 @@ def analyze_repository(repository, results_df, token):
         'Master Slave Replication': master_slave_replication_status,
         'Events': events_status,
         'Microservices in CI/CD': microservices_in_CI_status   ,
-        'Load Balancing': load_balancing_status,
-        'DBs unique': db_analyser_result,
+        'Load Balancing': load_balancing_status, 
         'Gateway': gateway_status
 
     }, ignore_index=True)
@@ -115,7 +105,7 @@ def analyze_repository(repository, results_df, token):
 
 
 def main():
-    access_token = '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'
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
@@ -139,7 +129,6 @@ def main():
                 print(results_df)
             except Exception as e:
                 print(e)
-                print("ERROR : ", e)
                 continue
 
 def save_to_excel(results_df, output_file):
