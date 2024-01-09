@@ -8,12 +8,9 @@ class DB_Analyser_Naive():
         print("BD ANALYSER", flush=True)
         self.__csv_manager = CSV_Manager()
 
-    def run(self, repository):
-        docker_compose_file = "docker-compose.yml"
-        content = repository.get_contents(docker_compose_file)
-
-        if content:
-            compose_data = self.__load_docker_compose(content.decoded_content)
+    def run(self, docker_compose_content):
+        if docker_compose_content:
+            compose_data = self.__load_docker_compose(docker_compose_content)
             if compose_data:
                 db_usage_count = self.__count_db_usage_naive(compose_data)
                 self.__check_single_usage(db_usage_count)

@@ -9,23 +9,18 @@ class DB_Analyser_Code():
         self.__access_token = access_token
         #self.__csv_manager = CSV_Manager()
 
-    def run(self, repository):
-        docker_compose_file = "docker-compose.yml"
-        content = repository.get_contents(docker_compose_file)
-
-        repository = repository
-
+    def run(self, repository, docker_compose_content):
         db_names_in_services = set()
 
-        if content:
-            compose_data = self.__load_docker_compose(content.decoded_content)
+        if docker_compose_content:
+            compose_data = self.__load_docker_compose(docker_compose_content)
 
             for service_name, service_config in compose_data.get('services', {}).items():
                 image_name = service_config.get('image', '')
                 if self.__is_database_service(service_name, image_name):
                     db_names_in_services.add(service_name.lower())
 
-            db_count_list = self.__find_db(repository, db_names_in_services)
+            db_count_list = self.__find_db(repository, db_names_in_services, docker_compose_content)
 
             #self.__csv_manager.right(db_count_list)
             print(db_count_list)
@@ -37,9 +32,9 @@ class DB_Analyser_Code():
         else:
             return False, {}
 
-    def __find_db(self, repository, db_name_list):
+    def __find_db(self, repository, db_name_list, docker_compose_content):
         db_count_list = {}
-        db_files = self.__found_db_file(repository, db_name_list)
+        db_files = self.__found_db_file(repository, db_name_list, docker_compose_content)
 
         for found_files in db_files:
             if found_files:
@@ -60,7 +55,7 @@ class DB_Analyser_Code():
 
         for fichier in liste_fichiers:
             # Ignorer docker-compose.yml
-            if 'docker-compose.yml' in fichier:
+            if 'docker' in fichier:
                 continue
 
             # Extraire le répertoire du chemin du fichier
@@ -87,7 +82,19 @@ class DB_Analyser_Code():
         return False
 
     def __get_repo_files(self, repository):
-        url = f'https://api.github.com/repos/{repository.owner.login}/{repository.name}/git/trees/main?recursive=1'
+        repo_url = "https://api.github.com/repos/" + str(repository.full_name)
+        print("repo_url : ", repo_url)
+
+        branches_url = f"{repo_url}/git/refs/heads"
+        default_branch = self.__get_default_branch(branches_url)
+
+        if default_branch:
+            print(f"Default branch: {default_branch}")
+            tree = self.__get_directory_tree(repo_url, default_branch)
+            print("Directory tree:")
+            for item in tree:
+                print(item)
+        #url = f'https://api.github.com/repos/{repository.owner.login}/{repository.name}/git/trees/main?recursive=1'
 
         response = requests.get(url, headers={"Authorization": f"Bearer {self.__access_token}"})
         response.raise_for_status()
@@ -95,13 +102,13 @@ class DB_Analyser_Code():
         files = [item['path'] for item in response.json().get('tree', []) if item.get('type') == 'blob']
         return files
 
-    def __found_db_file(self, repository, keywords):
+    def __found_db_file(self, repository, keywords, docker_compose_content):
         files = self.__get_repo_files(repository)
 
         db_used = []
 
         for keyword in keywords:
-            analyse = self.__search_keyword_in_files(repository, keyword, files)
+            analyse = self.__search_keyword_in_files(docker_compose_content, keyword, files)
 
             if len(analyse) <= 0:
                 print("\n" + Couleurs.JAUNE + "WARNING : no file found ..." + Couleurs.RESET + "\n")
@@ -111,7 +118,7 @@ class DB_Analyser_Code():
 
         return db_used
 
-    def __search_keyword_in_files(self, repository, keyword, files):
+    def __search_keyword_in_files(self, docker_compose_content, keyword, files):
 
         found_files = []
 
@@ -119,7 +126,7 @@ class DB_Analyser_Code():
             print("[ "+Couleurs.JAUNE+"FILE"+Couleurs.RESET+" ] research BD [ "+Couleurs.VERT+""+keyword+""+Couleurs.RESET+" ]  in : ", file)
             try:
                 # Utilisez le mode binaire pour éviter la tentative de décodage en UTF-8
-                content = repository.get_contents(file).decoded_content
+                content = docker_compose_content
                 # Convertissez keyword en bytes en l'encodant en UTF-8
                 keyword_bytes = keyword.encode('utf-8')
                 if keyword_bytes in content and "docker-compose" not in file:
@@ -166,6 +173,28 @@ class DB_Analyser_Code():
                     cpt.append("VAR_ENV_IN_" + service_name)
 
         return cpt
+
+    def __get_default_branch(self, api_url):
+        try:
+            response = requests.get(api_url)
+            response.raise_for_status()  # Raise an error for bad responses
+            branches = response.json()
+            if branches:
+                print("Branch name : ", branches[0]['name'], flush=True)
+                return branches[0]['name']
+            print("NONE", flush=True)
+            return None
+        except Exception as e:
+            print("Error during request: ", e)
+            return None
+
+
+    def __get_directory_tree(self, api_url, branch):
+        tree_url = f"{api_url}/git/trees/{branch}?recursive=1"
+        response = requests.get(tree_url)
+        response.raise_for_status()
+        return response.json().get('tree', [])
+
 
 
 
