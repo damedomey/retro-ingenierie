@@ -57,8 +57,8 @@ def analyze_repository(repository, results_df, token):
         ## CI/CD
 
         cicd = cicd_analyzer()
-        check_services_in_CI = cicd.check_services_in_CI(repository=repository, directories=directories)
-        microservices_in_CI_status = "All services" if check_services_in_CI=="all" else "Some services" if check_services_in_CI=="some" else "Not"
+        check_services_in_CICD_status = cicd.check_services_in_CI(repository=repository, directories=directories)
+        
         
         ## check gateway
 
@@ -92,7 +92,7 @@ def analyze_repository(repository, results_df, token):
         'MongoDB Replication': mongo_replication_status,
         'Master Slave Replication': master_slave_replication_status,
         'Events': events_status,
-        'Microservices in CI/CD': microservices_in_CI_status   ,
+        'Microservices in CI/CD': check_services_in_CICD_status   ,
         'Load Balancing': load_balancing_status, 
         'Gateway': gateway_status
 
@@ -105,7 +105,7 @@ def analyze_repository(repository, results_df, token):
 
 
 def main():
-    access_token = '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'
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
