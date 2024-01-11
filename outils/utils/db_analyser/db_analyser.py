@@ -8,18 +8,19 @@ class DB_analyser():
         self.access_token = token
         print("DB analyser")
 
-    def run(self, repository):
+    def run(self, repository, dockercompose):
         print("DOCKER COMPOSE ANALYSIS", flush=True)
-        is_naive_works, resutlat = self.__naive_analyse(repository)
+        is_naive_works, resutlat = self.__naive_analyse(dockercompose)
         res = {}
         if is_naive_works:
             print("\nNaive analyse OK 🎉\n")
             res = resutlat
 
-        is_code_works, resutlat = self.__code_analse(repository)
-        if is_code_works:
-            print("\nCode analyse OK 🎉\n")
-            res = resutlat
+        if not is_naive_works:
+            is_code_works, resutlat = self.__code_analse(repository, dockercompose)
+            if is_code_works:
+                print("\nCode analyse OK 🎉\n")
+                res = resutlat
 
         if all(valeur == 1 for valeur in resutlat.values()):
             return 1
@@ -29,10 +30,10 @@ class DB_analyser():
             print("\nDB analyse KO .... 🔥\n")
             return -1
 
-    def __naive_analyse(self, repository):
+    def __naive_analyse(self, dockercompose):
         analyser = DB_Analyser_Naive()
-        return analyser.run(repository)
+        return analyser.run(dockercompose)
 
-    def __code_analse(self, repository):
+    def __code_analse(self, repository, docker_compose_content):
         analyser = DB_Analyser_Code(self.access_token)
-        return analyser.run(repository)
+        return analyser.run(repository, docker_compose_content)
