@@ -76,25 +76,15 @@ class DB_Analyser_Code():
 
         for keyword in keywords_for_db:
             if keyword in image_name.lower():
-                print("DB detected ... 🚀 : " + image_name.lower())
+                print("DB detected ... :) : " + image_name.lower())
                 return True
 
         return False
 
     def __get_repo_files(self, repository):
         repo_url = "https://api.github.com/repos/" + str(repository.full_name)
-        print("repo_url : ", repo_url)
-
-        branches_url = f"{repo_url}/git/refs/heads"
-        default_branch = self.__get_default_branch(branches_url)
-
-        if default_branch:
-            print(f"Default branch: {default_branch}")
-            tree = self.__get_directory_tree(repo_url, default_branch)
-            print("Directory tree:")
-            for item in tree:
-                print(item)
-        #url = f'https://api.github.com/repos/{repository.owner.login}/{repository.name}/git/trees/main?recursive=1'
+        default_branch = repository.default_branch
+        url = repo_url + "/git/trees/"+default_branch+"?recursive=1"
 
         response = requests.get(url, headers={"Authorization": f"Bearer {self.__access_token}"})
         response.raise_for_status()
@@ -119,9 +109,7 @@ class DB_Analyser_Code():
         return db_used
 
     def __search_keyword_in_files(self, docker_compose_content, keyword, files):
-
         found_files = []
-
         for file in files:
             print("[ "+Couleurs.JAUNE+"FILE"+Couleurs.RESET+" ] research BD [ "+Couleurs.VERT+""+keyword+""+Couleurs.RESET+" ]  in : ", file)
             try:
@@ -129,8 +117,9 @@ class DB_Analyser_Code():
                 content = docker_compose_content
                 # Convertissez keyword en bytes en l'encodant en UTF-8
                 keyword_bytes = keyword.encode('utf-8')
+
                 if keyword_bytes in content and "docker-compose" not in file:
-                    print("🎉 ............ "+Couleurs.VERT+"FOUND"+Couleurs.RESET+" in "+file+"")
+                    print(":) ............ "+Couleurs.VERT+"FOUND"+Couleurs.RESET+" in "+file+"")
                     found_files.append(file)
             except Exception as e:
                 print("[ "+Couleurs.ROUGE+"ERROR"+Couleurs.RESET+" ] : "+Couleurs.ROUGE+"Lors du traitement du fichier "+file+": "+str(e)+""+Couleurs.RESET+"")
@@ -173,27 +162,6 @@ class DB_Analyser_Code():
                     cpt.append("VAR_ENV_IN_" + service_name)
 
         return cpt
-
-    def __get_default_branch(self, api_url):
-        try:
-            response = requests.get(api_url)
-            response.raise_for_status()  # Raise an error for bad responses
-            branches = response.json()
-            if branches:
-                print("Branch name : ", branches[0]['name'], flush=True)
-                return branches[0]['name']
-            print("NONE", flush=True)
-            return None
-        except Exception as e:
-            print("Error during request: ", e)
-            return None
-
-
-    def __get_directory_tree(self, api_url, branch):
-        tree_url = f"{api_url}/git/trees/{branch}?recursive=1"
-        response = requests.get(tree_url)
-        response.raise_for_status()
-        return response.json().get('tree', [])
 
 
 

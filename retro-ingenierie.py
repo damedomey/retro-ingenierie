@@ -81,7 +81,7 @@ def analyze_repository(repository, results_df, token):
         print("\n\n====================================================== "+Couleurs.VERT+"CICD ANALYSER"+Couleurs.RESET+"\n")
         cicd = cicd_analyzer()
         check_services_in_CICD_status = cicd.check_services_in_CI(repository=repository, directories=directories)
-        print("[ " + Couleurs.VERT + "CI/CD" + Couleurs.RESET + " ] : ", microservices_in_CI_status)
+        print("[ " + Couleurs.VERT + "CI/CD" + Couleurs.RESET + " ] : ", check_services_in_CICD_status)
 
         ## check gateway
         print("\n\n======================================================= "+Couleurs.VERT+"CHECK GATEWAY"+Couleurs.RESET+"\n")
@@ -97,9 +97,9 @@ def analyze_repository(repository, results_df, token):
         'MongoDB Replication': mongo_replication_status,
         'Master Slave Replication': master_slave_replication_status,
         'Events': events_status,
-        'Microservices in CI/CD': check_services_in_CICD_status   ,
+        'Microservices in CI/CD': check_services_in_CICD_status,
         'Load Balancing': load_balancing_status, 
-        'DBs unique': db_analyser_result,
+        'DBs unique': db_analyser_status,
         'Gateway': gateway_status
 
     }, ignore_index=True)
@@ -109,7 +109,7 @@ def analyze_repository(repository, results_df, token):
 def main():
     access_token = ''
     print("RETRO ANALYSE")
-    access_token = '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'
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results

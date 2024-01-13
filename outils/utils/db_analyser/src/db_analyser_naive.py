@@ -11,9 +11,11 @@ class DB_Analyser_Naive():
     def run(self, docker_compose_content):
         if docker_compose_content:
             compose_data = self.__load_docker_compose(docker_compose_content)
+
             if compose_data:
                 db_usage_count = self.__count_db_usage_naive(compose_data)
                 self.__check_single_usage(db_usage_count)
+
 
                 # Vérifier si l'un des éléments est égal à 0
                 if 0 in db_usage_count.values():
@@ -21,10 +23,10 @@ class DB_Analyser_Naive():
                     return False, {}
 
                 if len(db_usage_count) > 0:
-                    print("\n[ " + Couleurs.VERT + "OK" + Couleurs.RESET + " ] Depends_on trouvé 🎉\n")
+                    print("\n[ " + Couleurs.VERT + "OK" + Couleurs.RESET + " ] Depends_on trouvé \n")
                     return True, db_usage_count
                 else:
-                    print("\n[ "+Couleurs.ROUGE + "KO" + Couleurs.RESET+" ] Pas de depends_on trouvé 🔥 ...\n")
+                    print("\n[ "+Couleurs.ROUGE + "KO" + Couleurs.RESET+" ] Pas de depends_on trouvé  ...\n")
                     return False, {}
             else:
                 return False, {}
@@ -37,22 +39,20 @@ class DB_Analyser_Naive():
 
     def __is_database_service(self, service_name, image_name):
         keywords_for_db = ['mongo', 'mysql', 'postgres', 'cassandra']
-
         for keyword in keywords_for_db:
             if keyword in image_name.lower():
-                print("DB detected ... 🚀 : " + image_name)
+                print("DB detected ... : ", image_name)
                 return True
-
         return False
 
     def __count_db_usage_naive(self, compose_data):
         db_names_in_services = set()
         db_usage_count = {}
-
         for service_name, service_config in compose_data.get('services', {}).items():
             image_name = service_config.get('image', '')
             if self.__is_database_service(service_name, image_name):
                 db_names_in_services.add(service_name.lower())
+
 
 
         for service_name, service_config in compose_data.get('services', {}).items():

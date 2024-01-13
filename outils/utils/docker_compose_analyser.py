@@ -45,14 +45,11 @@ class Docker_compose_analyser():
         return directory_sizes
 
     def has_docker_compose(self, repository):
-        
         def search_for_docker_compose(contents, current_path=""):
             dockerfile = 0
-            print("TEST 1")
             for content in contents:
-                print("content : ", content)
+                #print("content : ", content)
                 if content.type == "dir":
-                    print("TEST 2")
                     sub_contents = repository.get_contents(content.path)
                     path = current_path + "/" + content.name if current_path else content.name
                     docker_compose_path = search_for_docker_compose(sub_contents, path)
@@ -61,11 +58,10 @@ class Docker_compose_analyser():
                 elif (
                         content.name.lower() == 'docker-compose.yml' or 'docker-compose' in content.name.lower()) and (
                         '.yaml' or '.yml' in content.name.lower()):
-                    docker_compose_content = repository.get_contents(content.path).decoded_content.decode("utf-8")
+                    docker_compose_content = repository.get_contents(content.name).decoded_content.decode("utf-8")
                     return docker_compose_content  # Retourne le contenu du fichier 'docker-compose.yml'
                 elif content.name.lower() == 'dockerfile':
                     dockerfile += 1
-
             return None
 
         contents = repository.get_contents("")
