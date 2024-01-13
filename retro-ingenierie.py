@@ -83,10 +83,6 @@ def analyze_repository(repository, results_df, token):
         check_services_in_CICD_status = cicd.check_services_in_CI(repository=repository, directories=directories)
         print("[ " + Couleurs.VERT + "CI/CD" + Couleurs.RESET + " ] : ", microservices_in_CI_status)
 
-        
-
-        
-
         ## check gateway
         print("\n\n======================================================= "+Couleurs.VERT+"CHECK GATEWAY"+Couleurs.RESET+"\n")
         gatewayanalyse = gateway_analyzer()
@@ -111,10 +107,9 @@ def analyze_repository(repository, results_df, token):
     return results_df
 
 def main():
-
     access_token = ''
     print("RETRO ANALYSE")
-    access_token = ''
+    access_token = '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'
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
@@ -137,7 +132,6 @@ def main():
 
                 print(results_df)
             except Exception as e:
-                print(e)
                 print("ERROR : ", e)
                 continue
 

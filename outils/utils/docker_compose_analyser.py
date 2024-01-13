@@ -48,8 +48,11 @@ class Docker_compose_analyser():
         
         def search_for_docker_compose(contents, current_path=""):
             dockerfile = 0
+            print("TEST 1")
             for content in contents:
+                print("content : ", content)
                 if content.type == "dir":
+                    print("TEST 2")
                     sub_contents = repository.get_contents(content.path)
                     path = current_path + "/" + content.name if current_path else content.name
                     docker_compose_path = search_for_docker_compose(sub_contents, path)
