@@ -98,8 +98,7 @@ class DB_Analyser_Code():
         db_used = []
 
         for keyword in keywords:
-            analyse = self.__search_keyword_in_files(docker_compose_content, keyword, files)
-
+            analyse = self.__search_keyword_in_files(repository, keyword, files)
             if len(analyse) <= 0:
                 print("\n" + Couleurs.JAUNE + "WARNING : no file found ..." + Couleurs.RESET + "\n")
                 analyse = self.__var_env_docker_compose_research(keyword, repository)
@@ -108,16 +107,16 @@ class DB_Analyser_Code():
 
         return db_used
 
-    def __search_keyword_in_files(self, docker_compose_content, keyword, files):
+    def __search_keyword_in_files(self, repository, keyword, files):
         found_files = []
         for file in files:
             print("[ "+Couleurs.JAUNE+"FILE"+Couleurs.RESET+" ] research BD [ "+Couleurs.VERT+""+keyword+""+Couleurs.RESET+" ]  in : ", file)
             try:
                 # Utilisez le mode binaire pour éviter la tentative de décodage en UTF-8
-                content = docker_compose_content
+                content_file = repository.get_contents(file)
+                content = content_file.decoded_content.decode("utf-8")  # Décodage du contenu du fichier en UTF-8
                 # Convertissez keyword en bytes en l'encodant en UTF-8
-                keyword_bytes = keyword.encode('utf-8')
-
+                keyword_bytes = keyword
                 if keyword_bytes in content and "docker-compose" not in file:
                     print(":) ............ "+Couleurs.VERT+"FOUND"+Couleurs.RESET+" in "+file+"")
                     found_files.append(file)
