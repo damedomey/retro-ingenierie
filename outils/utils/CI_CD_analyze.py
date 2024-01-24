@@ -25,20 +25,23 @@ class cicd_analyzer():
         ##print("file_content : " + str(file_content), flush=True)
         if len(file_contents)==0:
                 return "No CI/CD present"
-        
+
+
         for file_content in file_contents:
 
-            file = file_content.decoded_content.decode("utf-8")
+            if file_content.content is not None:
+                file = file_content.decoded_content.decode("utf-8")
+            else:
+                file = None
 
-            
-            
             ## parse file_content to a string
-            
-            for directory in directories:
-                for line in file.lower():
-                    if directory.lower() in file.lower() or line.lower() in directory.lower():
-                        services.append(directory)
-                        cpt+=1
+            if file is not None :
+                for directory in directories:
+                    for line in file.lower():
+                        if directory.lower() in file.lower() or line.lower() in directory.lower():
+                            services.append(directory)
+                            cpt+=1
+
 
         print(cpt)
         if cpt==0:
