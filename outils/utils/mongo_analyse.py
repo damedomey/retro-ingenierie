@@ -14,7 +14,7 @@ class mongo_analyzer():
         replication_detected = False
 
         for service_name, service_config in dockercompose.get('services', {}).items():
-            if 'image' in service_config and service_config['image'] == 'mongo':
+            if 'image' in service_config and ('mongo' in service_config['image'])  :
                 if 'command' in service_config:
                     command = service_config['command']
                     for keyword in replication_keywords:
