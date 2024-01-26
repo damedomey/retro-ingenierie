@@ -10,7 +10,8 @@ class cicd_analyzer():
         cicd_files=[]
         contents = repository.get_contents("")
         for content in contents:
-            if content.name.lower() == 'Jenkinsfile' or 'travis' in content.name.lower() or 'circle' in content.name.lower() or 'pipeline' in content.name.lower() or 'ci' in content.name.lower() or 'cd' in content.name.lower() :
+            print(content.name, flush=True)
+            if  ('jenkinsfile' in content.name.lower())  or ('travis' in content.name.lower()) or ('circle' in content.name.lower()) or ('pipeline' in content.name.lower()) or ('ci' in content.name.lower()) or ('cd' in content.name.lower()) :
 
                 cicd_files.append(content)
 
@@ -23,6 +24,8 @@ class cicd_analyzer():
         # Obtenez le contenu du fichier 'docker-compose.yml'
         file_contents = self.has_Jenkinsfile(repository)
         ##print("file_content : " + str(file_content), flush=True)
+
+        print(len(file_contents), flush=True)
         if len(file_contents)==0:
                 return "No CI/CD present"
 
