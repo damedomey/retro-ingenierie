@@ -16,10 +16,12 @@ class individual_deployment():
             
             for service_name in repo_images:
                 for directory in directories:
-                    if directory.lower() == service_name.lower() or (directory.lower() in service_name.lower()) or (service_name.lower() in directory.lower()):
+                    if (directory.lower() == service_name.lower() or (directory.lower() in service_name.lower()) or (service_name.lower() in directory.lower())) and "db" not in directory.lower():
                         if service_name not in correspondences:
                             deployed_services += 1
                             correspondences.append(service_name)
+            print("Founded ",len(correspondences)," microservices")
+            print(correspondences)
             return (correspondences, deployed_services)
         
         else:
