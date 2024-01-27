@@ -9,6 +9,7 @@ from outils.utils.load_balacing import loadbalancer_analyzer
 from outils.utils.CI_CD_analyze import cicd_analyzer
 from outils.utils.gateway import gateway_analyzer
 from outils.utils.db_analyser.db_analyser import DB_analyser
+from outils.utils.check_microservice import microservice_keywords
 from utils.Colors import Couleurs
 
 
@@ -118,8 +119,14 @@ def main():
         'MongoDB Replication', 'Master Slave Replication', 'Events',
         'Microservices in CI/CD', 'Load Balancing', 'DBs unique','Gateway'
     ]
+
     results_df = pd.DataFrame(columns=columns)
     output_file = "./output/output.xlsx"
+
+    columns_validation = ['Repo Name', 'Microservice or not']
+    validation_df = pd.DataFrame(columns=columns_validation)
+    validation_output_file = "./output/validation.xlsx"
+
 
     with open("./extracted_data.csv", "r") as csv_file:
         for line in csv_file:
@@ -134,6 +141,26 @@ def main():
             except Exception as e:
                 print("ERROR : ", e)
                 continue
+
+    with   open("./extracted_data.csv", "r") as csv_file:
+        for line in csv_file:
+            repo_name = line.strip()
+            repository = g.get_repo(repo_name)
+            print(repository)
+            try:
+
+                result_validation = microservice_keywords().identify_microservice_keywords(repository)
+                validation_df = validation_df._append({
+                    'Repo Name': repository.full_name,
+                    'Microservice or not': result_validation
+                }, ignore_index=True)
+
+                save_to_excel(validation_df, validation_output_file)
+                print(validation_df)
+            except Exception as e:
+                print("ERROR : ", e)
+                continue
+
 
 def save_to_excel(results_df, output_file):
     # Save the results to an Excel file
