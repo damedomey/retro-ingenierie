@@ -2,13 +2,13 @@ from github import Github
 import pandas as pd
 from outils.utils.check_microservice import microservice_keywords
 from outils.utils.check_directories_size import  services_size
+import argparse
 
 
 
-def main():
-    access_token = ''
+def main(token, input_file):
+    access_token =token
     print("RETRO ANALYSE")
-    access_token = ''
     g = Github(access_token)
 
 
@@ -17,7 +17,7 @@ def main():
     validation_output_file = "./output/validation.xlsx"
 
 
-    with   open("./extracted_data.csv", "r") as csv_file:
+    with   open(input_file, "r") as csv_file:
         for line in csv_file:
             repo_name = line.strip()
             repository = g.get_repo(repo_name)
@@ -56,4 +56,10 @@ def save_to_excel(results_df, output_file):
             worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
 
 if __name__ == "__main__":
-    main()
+
+    parser = argparse.ArgumentParser(description="GitHub script with access token and output file arguments")
+    parser.add_argument("--token", required=True, help="GitHub access token")
+    parser.add_argument("--input", required=True, help="input csv file path")
+
+    args = parser.parse_args()
+    main(args.token, args.input)

@@ -3,7 +3,7 @@ import csv
 import os
 
 # Replace 'YOUR_ACCESS_TOKEN' with your actual GitHub access token
-ACCESS_TOKEN = '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'
+ACCESS_TOKEN = ''
 g = Github(ACCESS_TOKEN)
 
 # Keywords related to microservices architecture

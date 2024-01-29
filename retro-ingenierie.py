@@ -1,16 +1,17 @@
 from github import Github
 import pandas as pd
-from outils.utils.docker_compose_analyser import Docker_compose_analyser
-from outils.utils.individualdeployment import individual_deployment
-from outils.utils.mongo_analyse import mongo_analyzer
-from outils.utils.master_slave import masterslave_analyzer
-from outils.utils.events_analyze import event_analyser
-from outils.utils.load_balacing import loadbalancer_analyzer
-from outils.utils.CI_CD_analyze import cicd_analyzer
-from outils.utils.gateway import gateway_analyzer
-from outils.utils.db_analyser.db_analyser import DB_analyser
-from outils.utils.check_microservice import microservice_keywords
+from utils.docker_compose_analyser import Docker_compose_analyser
+from utils.individualdeployment import individual_deployment
+from utils.mongo_analyse import mongo_analyzer
+from utils.master_slave import masterslave_analyzer
+from utils.events_analyze import event_analyser
+from utils.load_balacing import loadbalancer_analyzer
+from utils.CI_CD_analyze import cicd_analyzer
+from utils.gateway import gateway_analyzer
+from utils.db_analyser.db_analyser import DB_analyser
+from utils.check_microservice import microservice_keywords
 from utils.Colors import Couleurs
+import argparse
 
 
 def analyze_repository(repository, results_df, token):
@@ -107,10 +108,9 @@ def analyze_repository(repository, results_df, token):
 
     return results_df
 
-def main():
-    access_token = ''
+def main(token, input_file):
+    access_token = token
     print("RETRO ANALYSE")
-    access_token = ''
     g = Github(access_token)
 
     # Create an empty DataFrame to store results
@@ -176,4 +176,8 @@ def save_to_excel(results_df, output_file):
             worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="GitHub script with access token and output file arguments")
+    parser.add_argument("--token", required=True, help="GitHub access token")
+    parser.add_argument("--input", required=True, help="input csv file path")
+    args = parser.parse_args()
+    main(args.token, args.input)
