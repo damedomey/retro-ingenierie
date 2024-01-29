@@ -1,7 +1,7 @@
 from github import Github
 import pandas as pd
-from outils.utils.check_microservice import microservice_keywords
-from outils.utils.check_directories_size import  services_size
+from utils.check_microservice import microservice_keywords
+from utils.check_directories_size import  services_size
 import argparse
 
 
